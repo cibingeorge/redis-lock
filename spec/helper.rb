@@ -15,10 +15,10 @@ RSpec.configure do |spec|
   # @see https://www.relishapp.com/rspec/rspec-core/docs/hooks/around-hooks
   spec.around( :each, redis: true ) do |example|
     with_clean_redis { example.run }
-    Redis::Lock.send(:public, *Redis::Lock.private_instance_methods)
+    Redis::MultiLock.send(:public, *Redis::MultiLock.private_instance_methods)
   end
 
   spec.before( :suite ) do
-    Redis::Lock.config.default_timeout = 0.01
+    Redis::MultiLock.config.default_timeout = 0.01
   end
 end

@@ -1,5 +1,5 @@
 class Redis
-  class Lock
+  class MultiLock
     VERSION = "0.2.6"
   end
 end

@@ -1,14 +1,14 @@
 require "helper"
 
-describe Redis::Lock, redis: true do
+describe Redis::MultiLock, redis: true do
 
   let(:non) { nil }
   let(:her) { "Alice" }
   let(:him) { "Bob" }
-  let(:hers)       { Redis::Lock.new( redis, "alpha", owner: her ) }
-  let(:her_same)   { Redis::Lock.new( redis, "alpha", owner: her ) }
-  let(:his)        { Redis::Lock.new( redis, "alpha", owner: him ) }
-  let(:his_other)  { Redis::Lock.new( redis, "beta",  owner: him ) }
+  let(:hers)       { Redis::MultiLock.new( redis, ["alpha", "alpha2"], owner: her ) }
+  let(:her_same)   { Redis::MultiLock.new( redis, "alpha", owner: her ) }
+  let(:his)        { Redis::MultiLock.new( redis, "alpha", owner: him ) }
+  let(:his_other)  { Redis::MultiLock.new( redis, "beta",  owner: him ) }
   let(:past   ) { 1 }
   let(:present) { 2 }
   let(:future ) { 3 }
@@ -28,13 +28,13 @@ describe Redis::Lock, redis: true do
 
     it "passes the lock into a supplied block" do
       hers.lock do |lock|
-        expect(lock).to be_an_instance_of(Redis::Lock)
+        expect(lock).to be_an_instance_of(Redis::MultiLock)
       end
     end
 
     it "passes the lock into a supplied lambda" do
       action = ->(lock) do
-        expect(lock).to be_an_instance_of(Redis::Lock)
+        expect(lock).to be_an_instance_of(Redis::MultiLock)
       end
       hers.lock( &action )
     end
@@ -103,7 +103,11 @@ describe Redis::Lock, redis: true do
   end
 
   example "How to get a lock using the helper." do
-    redis.lock "mykey", life: 10, acquire: 1 do |lock|
+    redis.multi_lock "mykey", life: 10, acquire: 1 do |lock|
+      lock.extend_life 10
+    end
+
+    redis.multi_lock ["mykey", "mysecondkey"], life: 10, acquire: 1 do |lock|
       lock.extend_life 10
     end
   end
